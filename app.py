@@ -1,8 +1,9 @@
 import streamlit as st
-from googletrans import LANGUAGES, Translator
+from deep_translator import GoogleTranslator
 
-# Initialize translator
-translator = Translator()
+# Initialize language options
+translator_instance = GoogleTranslator(source="auto", target="en")
+supported_languages = translator_instance.get_supported_languages(as_dict=True)
 
 # Application title
 st.title("🌐 Language Translation Tool")
@@ -12,36 +13,29 @@ st.write("Translate text easily between different languages.")
 user_text = st.text_area("Enter text to translate:", height=150)
 
 # Language selection dropdowns
-languages_list = list(LANGUAGES.values())
-
 col1, col2 = st.columns(2)
 with col1:
     src_lang = st.selectbox(
-        "Source Language", options=["auto"] + languages_list, index=0
+        "Source Language", options=["auto"] + list(supported_languages.keys())
     )
 with col2:
-    tgt_lang = st.selectbox("Target Language", options=languages_list, index=21)
+    tgt_lang = st.selectbox(
+        "Target Language", options=list(supported_languages.keys()), index=27
+    )
 
 # Action button
 if st.button("Translate"):
     if user_text.strip():
-        # Get language codes
-        src_code = (
-            "auto"
-            if src_lang == "auto"
-            else list(LANGUAGES.keys())[languages_list.index(src_lang)]
-        )
-        tgt_code = list(LANGUAGES.keys())[languages_list.index(tgt_lang)]
-
-        # Perform translation
         try:
-            translation = translator.translate(
-                user_text, src=src_code, dest=tgt_code
-            )
+            # Configure translator
+            src_code = "auto" if src_lang == "auto" else src_lang
+            translated = GoogleTranslator(
+                source=src_code, target=tgt_lang
+            ).translate(user_text)
 
             # Display output
             st.subheader("Translated Text:")
-            st.success(translation.text)
+            st.success(translated)
         except Exception as e:
             st.error(f"Error during translation: {e}")
     else:
