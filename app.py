@@ -1,23 +1,8 @@
 import streamlit as st
-from deep_translator import GoogleTranslator
+from googletrans import LANGUAGES, Translator
 
-# Predefined language dictionary to avoid API rate limiting
-LANGUAGES = {
-    "auto": "Auto Detect",
-    "en": "English",
-    "es": "Spanish",
-    "fr": "French",
-    "de": "German",
-    "it": "Italian",
-    "hi": "Hindi",
-    "telugu": "Telugu",
-    "tamil": "Tamil",
-    "zh-CN": "Chinese (Simplified)",
-    "ja": "Japanese",
-    "ar": "Arabic",
-    "ru": "Russian",
-    "pt": "Portuguese"
-}
+# Initialize translator
+translator = Translator()
 
 # Application title
 st.title("🌐 Language Translation Tool")
@@ -27,26 +12,36 @@ st.write("Translate text easily between different languages.")
 user_text = st.text_area("Enter text to translate:", height=150)
 
 # Language selection dropdowns
+languages_list = list(LANGUAGES.values())
+
 col1, col2 = st.columns(2)
 with col1:
-    src_display = st.selectbox("Source Language", options=list(LANGUAGES.values()), index=0)
+    src_lang = st.selectbox(
+        "Source Language", options=["auto"] + languages_list, index=0
+    )
 with col2:
-    tgt_display = st.selectbox("Target Language", options=[v for k, v in LANGUAGES.items() if k != "auto"], index=0)
-
-# Map selected display names back to language codes
-src_code = [k for k, v in LANGUAGES.items() if v == src_display][0]
-tgt_code = [k for k, v in LANGUAGES.items() if v == tgt_display][0]
+    tgt_lang = st.selectbox("Target Language", options=languages_list, index=21)
 
 # Action button
 if st.button("Translate"):
     if user_text.strip():
+        # Get language codes
+        src_code = (
+            "auto"
+            if src_lang == "auto"
+            else list(LANGUAGES.keys())[languages_list.index(src_lang)]
+        )
+        tgt_code = list(LANGUAGES.keys())[languages_list.index(tgt_lang)]
+
+        # Perform translation
         try:
-            # Perform translation
-            translated = GoogleTranslator(source=src_code, target=tgt_code).translate(user_text)
+            translation = translator.translate(
+                user_text, src=src_code, dest=tgt_code
+            )
 
             # Display output
             st.subheader("Translated Text:")
-            st.success(translated)
+            st.success(translation.text)
         except Exception as e:
             st.error(f"Error during translation: {e}")
     else:
